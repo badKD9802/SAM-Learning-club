@@ -1,0 +1,149 @@
+---
+title: "your tunr"
+author: "KD BAE"
+date: '2021 7 1 '
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+
+```
+
+1-1
+```{r}
+b <- flights %>% filter(dep_delay >= 120)  %>%  head(5)
+b$carrier
+
+```
+1-2
+```{r}
+c <- flights %>%  filter(dep_delay <=0 | arr_delay >0) %>%  head(5)
+c$carrier
+```
+1-3
+
+```{r}
+d <- flights %>%  filter(dep_delay >= 60 | arr_delay <= -30)  %>% head(5)
+
+d$carrier
+
+```
+
+1-4
+
+```{r}
+sum(is.na(flights$sched_dep_time))
+sum(is.na(flights$sched_arr_time))
+
+sum(is.na(flights$dep_time))
+sum(is.na(flights$dep_delay))
+
+sum(is.na(flights$arr_time))
+sum(is.na(flights$arr_delay))
+
+```
+출발하지 않은걸로보임 dep_time은 출발시간인데 출발하지않았은 NA로 된것으로 판단
+NA결측치들을 제거하는것이 올바른 판단인거 같음.
+출발한시간이없으니 지연된 출발시간이없다고 생각. 그래서 결측값갯수를 확인했는데 같다.
+물론 결측값갯수가 같다고 같은변수가 NA인지는 모르겠지만 추측할 수는 있다.
+그래서 출발을 안했으니 출발딜레이도 없을을것이다. 도착도해봤지만 도착딜레이한것이랑 도착한것의 결측값이 다르다.도착한 결측값이 더 많은것으로보아 아마 출발하고 추락하여 폭파된 것이나 실종되거나 버뮤다삼각지대로 사라진건가? ㄹㅇㅋㅋ
+예정된 출발시간과 예정된 도착시간은 결측값이없다.
+
+\newpage
+2번
+```{r}
+flights %>% arrange((dep_delay))
+a <-flights %>% arrange((dep_delay))
+a[6,]$carrier
+```
+
+
+```{r}
+flights$speed <- flights$distance/flights$air_time
+max(flights$distance/flights$air_time,na.rm=TRUE)
+library(tidyverse)
+MOC <- flights %>% arrange(desc(speed))
+
+MOC$carrier[1]
+```
+속력을 구해서 데이터에 넣은후 데이터를 정렬하고 속력이 가장 큰값의 carrier을 구했다.
+
+
+\newpage
+
+3번
+
+```{r}
+flights %>% select(starts_with("arr")|starts_with("dep"))
+
+
+```
+
+\newpage
+
+4번
+
+```{r}
+flights %>% select(ends_with("dep_time")) -> flights2
+flights2 %>% mutate(hour = dep_time %/% 60,
+                    minute = dep_time %% 60)
+```
+
+```{r}
+a <- flights %>% transmute(air_time - (arr_time-dep_time)) 
+head(a)
+length(which(a>0))
+length(which(a<0))
+```
+보통 비행기는 땅에서 달리다가 날라가기 때문에 air_time이 더 작은것이많고 만약 air_time이 더크다면 아마 착륙이어려워서 공중에서 있어야할때 air_time이 더 클것이다 그래서 대부분 air_time이 더 작고 드문경우에 착륙이 어려우므로 air_time이 더 크다
+
+```{r}
+flights$delay <- flights %>% transmute(delay = dep_time - sched_dep_time )
+length(which(flights$delay == flights$dep_delay))
+length(which(flights$delay != flights$dep_delay))
+flights %>%  select(delay, dep_delay)
+```
+ 흠 이거는 왜 다른지 모르겠네 잘못 작성한건가 근데 같은게 더 많긴해 같아야 정상인데 출발시간을 잘못 체크하신걸수도.
+
+\newpage
+
+5번
+
+```{r}
+a <- flights %>% group_by(carrier) %>% summarise(mean_1 = mean(dep_delay,na.rm=TRUE))
+b <- flights %>% group_by(carrier) %>% summarise(var_1 = var(dep_delay, na.rm=TRUE))
+a %>% arrange(desc(mean_1))
+b %>% arrange(desc(var_1))
+```
+#F9가 가장평균이크고 HA가 분산이 가장크다.
+
+
+```{r}
+c <- flights %>% group_by(month,day) %>% summarise(mean_2=mean(dep_delay, na.rm=T), n = n())
+c %>% arrange(desc(mean_2))
+```
+3월8일이 가장 크다.
+
+
+```{r}
+d <- flights %>% group_by(month=3,day=8,carrier) %>% summarise(var_2 = var(dep_delay,na.rm = TRUE))
+
+d %>% arrange((var_2))
+```
+
+US가 가장작다.
+
+
+
+
+
+
+
